@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网站性能测试平台</title>
+    <script>
+        // 简单加载Tailwind CSS，离线可用
+        if (!window.tailwindcssLoaded) {
+            const style = document.createElement('style');
+            // 精简版Tailwind核心样式，包含所需工具类
+            style.textContent = `
+                /* 基础样式 */
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: system-ui, -apple-system, sans-serif; background-color: #f9fafb; min-height: 100vh; }
+
+                /* 颜色系统 */
+                .bg-primary { background-color: #165DFF; }
+                .bg-secondary { background-color: #36D399; }
+                .bg-accent { background-color: #F87272; }
+                .bg-dark { background-color: #1E293B; }
+                .bg-light { background-color: #F8FAFC; }
+                .bg-gray-50 { background-color: #f9fafb; }
+                .bg-gray-100 { background-color: #f3f4f6; }
+                .bg-gray-200 { background-color: #e5e7eb; }
+                .bg-gray-300 { background-color: #d1d5db; }
+                .bg-white { background-color: #ffffff; }
+                .bg-red-100 { background-color: #fee2e2; }
+                .bg-green-100 { background-color: #dcfce7; }
+                .bg-yellow-100 { background-color: #fef3c7; }
+                .bg-blue-100 { background-color: #dbeafe; }
+
+                .text-primary { color: #165DFF; }
+                .text-secondary { color: #36D399; }
+                .text-accent { color: #F87272; }
+                .text-gray-400 { color: #9ca3af; }
+                .text-gray-500 { color: #6b7280; }
+                .text-gray-600 { color: #4b5563; }
+                .text-gray-700 { color: #374151; }
+                .text-gray-800 { color: #1f2937; }
+                .text-gray-900 { color: #111827; }
+                .text-white { color: #ffffff; }
+                .text-red-500 { color: #ef4444; }
+                .text-red-600 { color: #dc2626; }
+                .text-green-500 { color: #10b981; }
+                .text-green-800 { color: #065f46; }
+                .text-yellow-800 { color: #92400e; }
+                .text-blue-500 { color: #3b82f6; }
+                .text-blue-900 { color: #1e3a8a; }
+
+                .border-primary { border-color: #165DFF; }
+                .border-gray-200 { border-color: #e5e7eb; }
+                .border-gray-300 { border-color: #d1d5db; }
+
+                /* 渐变背景 */
+                .gradient-bg { background: linear-gradient(135deg, #165DFF 0%, #3B82F6 100%); }
+                .bg-gradient-to-br { background: linear-gradient(to bottom right, #165DFF, #2563eb); }
+
+                /* 布局 */
+                .flex { display: flex; }
+                .hidden { display: none !important; }
+                .block { display: block; }
+                .inline-flex { display: inline-flex; }
+                .items-center { align-items: center; }
+                .justify-center { justify-content: center; }
+                .justify-between { justify-content: space-between; }
+                .flex-col { flex-direction: column; }
+                .flex-shrink-0 { flex-shrink: 0; }
+                .space-y-4 > * + * { margin-top: 1rem; }
+                .space-y-6 > * + * { margin-top: 1.5rem; }
+                .space-x-3 > * + * { margin-left: 0.75rem; }
+                .space-x-4 > * + * { margin-left: 1rem; }
+                .space-x-8 > * + * { margin-left: 2rem; }
+
+                /* 间距 */
+                .p-4 { padding: 1rem; }
+                .p-6 { padding: 1.5rem; }
+                .p-8 { padding: 2rem; }
+                .px-4 { padding-left: 1rem; padding-right: 1rem; }
+                .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+                .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+                .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+                .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+                .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+                .py-12 { padding-top: 3rem; padding-bottom: 3rem; }
+                .pt-4 { padding-top: 1rem; }
+                .mb-2 { margin-bottom: 0.5rem; }
+                .mb-4 { margin-bottom: 1rem; }
+                .mb-6 { margin-bottom: 1.5rem; }
+                .mr-1 { margin-right: 0.25rem; }
+                .mr-2 { margin-right: 0.5rem; }
+                .mr-3 { margin-right: 0.75rem; }
+                .mt-2 { margin-top: 0.5rem; }
+                .mt-8 { margin-top: 2rem; }
+                .mx-auto { margin-left: auto; margin-right: auto; }
+
+                /* 尺寸 */
+                .w-full { width: 100%; }
+                .w-8 { width: 2rem; }
+                .w-10 { width: 2.5rem; }
+                .w-16 { width: 4rem; }
+                .max-w-md { max-width: 28rem; }
+                .max-w-7xl { max-width: 80rem; }
+                .max-w-sm { max-width: 24rem; }
+                .h-8 { height: 2rem; }
+                .h-10 { height: 2.5rem; }
+                .h-16 { height: 4rem; }
+                .min-h-screen { min-height: 100vh; }
+                .min-w-full { min-width: 100%; }
+
+                /* 边框 */
+                .rounded-lg { border-radius: 0.5rem; }
+                .rounded-xl { border-radius: 0.75rem; }
+                .rounded-2xl { border-radius: 1rem; }
+                .rounded-full { border-radius: 9999px; }
+                .border { border-width: 1px; border-style: solid; }
+                .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+                .border-b-2 { border-bottom-width: 2px; border-bottom-style: solid; }
+
+                /* 阴影 */
+                .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+                .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+                .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+
+                /* 文字 */
+                .text-xs { font-size: 0.75rem; line-height: 1rem; }
+                .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+                .text-base { font-size: 1rem; line-height: 1.5rem; }
+                .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+                .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+                .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+                .font-medium { font-weight: 500; }
+                .font-semibold { font-weight: 600; }
+                .font-bold { font-weight: 700; }
+                .leading-5 { line-height: 1.25rem; }
+                .tracking-wider { letter-spacing: 0.05em; }
+                .whitespace-nowrap { white-space: nowrap; }
+                .text-left { text-align: left; }
+                .text-center { text-align: center; }
+                .text-right { text-align: right; }
+                .uppercase { text-transform: uppercase; }
+
+                /* 定位 */
+                .relative { position: relative; }
+                .absolute { position: absolute; }
+                .fixed { position: fixed; }
+                .sticky { position: sticky; }
+                .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+                .top-0 { top: 0; }
+                .top-4 { top: 1rem; }
+                .right-4 { right: 1rem; }
+                .z-10 { z-index: 10; }
+                .z-50 { z-index: 50; }
+
+                /* 表格 */
+                .divide-y > * + * { border-top-width: 1px; border-top-style: solid; }
+                .divide-gray-200 > * + * { border-top-color: #e5e7eb; }
+
+                /* 溢出 */
+                .overflow-hidden { overflow: hidden; }
+                .overflow-x-auto { overflow-x: auto; }
+
+                /* 过渡动画 */
+                .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+                .transition-colors { transition-property: background-color, border-color, color; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+                .transition-transform { transition-property: transform; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+                .duration-150 { transition-duration: 150ms; }
+                .duration-200 { transition-duration: 200ms; }
+                .duration-300 { transition-duration: 300ms; }
+                .duration-500 { transition-duration: 500ms; }
+
+                /* 变换 */
+                .transform { transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)); }
+                .translate-x-0 { --tw-translate-x: 0px; }
+                .translate-x-full { --tw-translate-x: 100%; }
+                .hover\:scale-105:hover { --tw-scale-x: 1.05; --tw-scale-y: 1.05; }
+                .scale-100 { --tw-scale-x: 1; --tw-scale-y: 1; }
+
+                /* 其他 */
+                .cursor-pointer { cursor: pointer; }
+                .resize-none { resize: none; }
+                .opacity-0 { opacity: 0; }
+                .opacity-100 { opacity: 1; }
+                .backdrop-blur { backdrop-filter: blur(8px); }
+                .content-auto { content-visibility: auto; }
+
+                /* 悬浮效果 */
+                .hover\:bg-blue-700:hover { background-color: #1d4ed8; }
+                .hover\:bg-green-600:hover { background-color: #059669; }
+                .hover\:bg-red-600:hover { background-color: #dc2626; }
+                .hover\:bg-gray-300:hover { background-color: #d1d5db; }
+                .hover\:text-gray-600:hover { color: #4b5563; }
+                .hover\:text-gray-700:hover { color: #374151; }
+                .hover\:text-blue-900:hover { color: #1e3a8a; }
+                .hover\:text-red-900:hover { color: #7f1d1d; }
+                .hover\:bg-gray-50:hover { background-color: #f9fafb; }
+                .hover\:border-gray-300:hover { border-color: #d1d5db; }
+                .hover\:shadow-3xl:hover { box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3); }
+
+                /* 聚焦效果 */
+                .focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+                .focus\:ring-2:focus { --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+                                       --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+                                       box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000); }
+                .focus\:ring-primary:focus { --tw-ring-color: #165DFF; }
+                .focus\:ring-offset-2:focus { --tw-ring-offset-width: 2px; }
+
+                /* 自定义类 */
+                .card-hover { transition: all 0.3s ease; }
+                .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+                .modal-backdrop { backdrop-filter: blur(8px); background: rgba(0, 0, 0, 0.5); }
+                .input-focus { transition: all 0.2s ease; }
+                .input-focus:focus { border-color: #165DFF; box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1); }
+
+                /* 响应式 */
+                @media (min-width: 640px) { .sm\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; } }
+                @media (min-width: 1024px) { .lg\:px-8 { padding-left: 2rem; padding-right: 2rem; } }
+            `;
+            document.head.appendChild(style);
+            window.tailwindcssLoaded = true;
+        }
+    </script>
+    <style>
+        /* 字体图标样式 - 替代FontAwesome */
+        .fa {
+            display: inline-block;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 1;
+            font-size: inherit;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .fa-user:before { content: "👤"; }
+        .fa-lock:before { content: "🔒"; }
+        .fa-sign-in:before { content: "→"; }
+        .fa-tachometer:before { content: "📊"; }
+        .fa-sign-out:before { content: "←"; }
+        .fa-users:before { content: "👥"; }
+        .fa-wrench:before { content: "🔧"; }
+        .fa-plus:before { content: "+"; }
+        .fa-trash:before { content: "🗑"; }
+        .fa-times:before { content: "×"; font-size: 1.5rem; }
+        .fa-user-plus:before { content: "👤+"; }
+        .fa-save:before { content: "💾"; }
+        .fa-check:before { content: "✓"; }
+        .fa-exclamation-triangle:before { content: "⚠"; }
+        .fa-check-circle:before { content: "✓○"; }
+        .fa-info-circle:before { content: "ⓘ"; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 登录页面 -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary to-blue-500 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-500 hover:shadow-3xl">
+            <div class="gradient-bg p-8 text-center">
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span class="fa fa-tachometer text-white text-2xl"></span>
+                </div>
+                <h2 class="text-white text-2xl font-bold mb-2">性能测试平台</h2>
+                <p class="text-white/80 text-sm">专业的网站性能测试解决方案</p>
+            </div>
+
+            <div class="p-8">
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">
+                            <span class="fa fa-user mr-2"></span>用户名
+                        </label>
+                        <input type="text" id="username" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg input-focus"
+                               placeholder="请输入用户名" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">
+                            <span class="fa fa-lock mr-2"></span>密码
+                        </label>
+                        <input type="password" id="password" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg input-focus"
+                               placeholder="请输入密码" required>
+                    </div>
+
+                    <div class="text-center text-sm text-gray-500 mb-4">
+                        <p>账号密码皆为: <span class="font-semibold text-primary">student</span></p>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full bg-primary hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                        <span class="fa fa-sign-in mr-2"></span>登录系统
+                    </button>
+                </form>
+
+                <div class="mt-8 text-center text-gray-500 text-sm">
+                    <p>© 2025 性能测试平台 | 专业·高效·可靠</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用界面 -->
+    <div id="appPage" class="hidden">
+        <!-- 顶部导航栏 -->
+        <nav class="bg-white shadow-lg sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3">
+                                <span class="fa fa-tachometer text-white"></span>
+                            </div>
+                            <span class="text-xl font-bold text-gray-800">性能测试平台</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium">欢迎, </span>
+                            <span id="currentUser" class="text-primary font-semibold">student</span>
+                        </div>
+                        <button id="logoutBtn" 
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition-colors duration-200">
+                            <span class="fa fa-sign-out mr-2"></span>退出
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主要内容区域 -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- 页面切换标签 -->
+            <div class="border-b border-gray-200 mb-8">
+                <nav class="-mb-px flex space-x-8">
+                    <button id="personnelTab" 
+                            class="px-1 py-4 border-b-2 border-primary text-primary font-medium text-sm whitespace-nowrap">
+                        <span class="fa fa-users mr-2"></span>人员登记
+                    </button>
+                    <button id="maintenanceTab" 
+                            class="px-1 py-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm whitespace-nowrap">
+                        <span class="fa fa-wrench mr-2"></span>保修登记
+                    </button>
+                </nav>
+            </div>
+
+            <!-- 人员登记页面 -->
+            <div id="personnelPage" class="space-y-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            <span class="fa fa-users text-primary mr-2"></span>人员登记管理
+                        </h3>
+                        <button id="addPersonBtn" 
+                                class="bg-secondary hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                            <span class="fa fa-plus mr-2"></span>新增人员
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">姓名</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">部门</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">职位</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">联系方式</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">登记时间</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="personnelTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- 人员数据将通过JavaScript动态添加 -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="personnelEmptyState" class="text-center py-12 hidden">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="fa fa-users text-gray-400 text-2xl"></span>
+                        </div>
+                        <p class="text-gray-500">暂无人员登记数据</p>
+                        <p class="text-gray-400 text-sm mt-2">点击"新增人员"按钮添加第一条记录</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 保修登记页面 -->
+            <div id="maintenancePage" class="hidden space-y-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            <span class="fa fa-wrench text-primary mr-2"></span>保修登记管理
+                        </h3>
+                        <div class="flex space-x-3">
+                            <button id="addMaintenanceBtn" 
+                                    class="bg-secondary hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                                <span class="fa fa-plus mr-2"></span>保修申请
+                            </button>
+                            <button id="clearDatabaseBtn" 
+                                    class="bg-accent hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                                <span class="fa fa-trash mr-2"></span>清空数据
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">申报项目</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">申报时间</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">申报理由</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">申报人</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="maintenanceTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- 保修数据将通过JavaScript动态添加 -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="maintenanceEmptyState" class="text-center py-12 hidden">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="fa fa-wrench text-gray-400 text-2xl"></span>
+                        </div>
+                        <p class="text-gray-500">暂无保修登记数据</p>
+                        <p class="text-gray-400 text-sm mt-2">点击"保修申请"按钮添加第一条记录</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增人员模态框 -->
+    <div id="addPersonModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative z-10 transform transition-all duration-300 scale-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <span class="fa fa-user-plus text-primary mr-2"></span>新增人员登记
+                </h3>
+                <button id="closePersonModal" class="text-gray-400 hover:text-gray-600">
+                    <span class="fa fa-times text-xl"></span>
+                </button>
+            </div>
+
+            <form id="personForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">姓名</label>
+                    <input type="text" id="personName" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">部门</label>
+                    <input type="text" id="personDepartment" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">职位</label>
+                    <input type="text" id="personPosition" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">联系方式</label>
+                    <input type="text" id="personContact" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                           required>
+                </div>
+
+                <div class="flex space-x-3 pt-4">
+                    <button type="button" id="cancelPersonBtn" 
+                            class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition-colors duration-200">
+                        取消
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                        <span class="fa fa-save mr-2"></span>保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 保修申请模态框 -->
+    <div id="addMaintenanceModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative z-10 transform transition-all duration-300 scale-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <span class="fa fa-wrench text-primary mr-2"></span>保修申请
+                </h3>
+                <button id="closeMaintenanceModal" class="text-gray-400 hover:text-gray-600">
+                    <span class="fa fa-times text-xl"></span>
+                </button>
+            </div>
+
+            <form id="maintenanceForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">申报项目 <span class="text-red-500">*</span></label>
+                    <select id="maintenanceItem" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                            required>
+                        <option value="">请选择申报项目</option>
+                        <option value="1">项目1</option>
+                        <option value="2">项目2</option>
+                        <option value="4">项目4</option>
+                        <option value="5">项目5</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">申报时间 <span class="text-red-500">*</span></label>
+                    <input type="date" id="maintenanceDate" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                           required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">申报理由 <span class="text-red-500">*</span></label>
+                    <textarea id="maintenanceReason" rows="4" 
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus resize-none"
+                              placeholder="请详细描述保修理由..." required></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">申报人</label>
+                    <input type="text" id="maintenanceApplicant" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus"
+                           value="student" readonly>
+                </div>
+
+                <div class="flex space-x-3 pt-4">
+                    <button type="button" id="cancelMaintenanceBtn" 
+                            class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition-colors duration-200">
+                        取消
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                        <span class="fa fa-save mr-2"></span>提交申请
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 确认清空数据模态框 -->
+    <div id="confirmClearModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative z-10 transform transition-all duration-300 scale-100">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="fa fa-exclamation-triangle text-red-500 text-2xl"></span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">确认清空数据</h3>
+                <p class="text-gray-600 text-sm">此操作将永久删除所有数据，包括人员登记和保修记录。</p>
+                <p class="text-red-500 text-sm mt-2 font-medium">操作不可逆，请谨慎确认！</p>
+            </div>
+
+            <div class="flex space-x-3 pt-4">
+                <button id="cancelClearBtn" 
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg transition-colors duration-200">
+                    取消
+                </button>
+                <button id="confirmClearBtn" 
+                        class="flex-1 bg-accent hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                    <span class="fa fa-trash mr-2"></span>确认清空
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知提示框 -->
+    <div id="notification" class="fixed top-4 right-4 z-50 transform transition-all duration-500 translate-x-full opacity-0">
+        <div class="bg-white rounded-lg shadow-lg p-4 max-w-sm">
+            <div class="flex items-center">
+                <div id="notificationIcon" class="w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                    <span class="fa fa-check text-white"></span>
+                </div>
+                <div>
+                    <h4 id="notificationTitle" class="font-medium text-gray-900"></h4>
+                    <p id="notificationMessage" class="text-sm text-gray-600"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 数据存储
+        let personnelData = JSON.parse(localStorage.getItem('personnelData')) || [];
+        let maintenanceData = JSON.parse(localStorage.getItem('maintenanceData')) || [];
+
+        // DOM元素
+        const loginPage = document.getElementById('loginPage');
+        const appPage = document.getElementById('appPage');
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const currentUser = document.getElementById('currentUser');
+
+        // 页面切换
+        const personnelTab = document.getElementById('personnelTab');
+        const maintenanceTab = document.getElementById('maintenanceTab');
+        const personnelPage = document.getElementById('personnelPage');
+        const maintenancePage = document.getElementById('maintenancePage');
+
+        // 人员登记相关
+        const addPersonBtn = document.getElementById('addPersonBtn');
+        const addPersonModal = document.getElementById('addPersonModal');
+        const closePersonModal = document.getElementById('closePersonModal');
+        const cancelPersonBtn = document.getElementById('cancelPersonBtn');
+        const personForm = document.getElementById('personForm');
+        const personnelTableBody = document.getElementById('personnelTableBody');
+        const personnelEmptyState = document.getElementById('personnelEmptyState');
+
+        // 保修登记相关
+        const addMaintenanceBtn = document.getElementById('addMaintenanceBtn');
+        const clearDatabaseBtn = document.getElementById('clearDatabaseBtn');
+        const addMaintenanceModal = document.getElementById('addMaintenanceModal');
+        const closeMaintenanceModal = document.getElementById('closeMaintenanceModal');
+        const cancelMaintenanceBtn = document.getElementById('cancelMaintenanceBtn');
+        const maintenanceForm = document.getElementById('maintenanceForm');
+        const maintenanceTableBody = document.getElementById('maintenanceTableBody');
+        const maintenanceEmptyState = document.getElementById('maintenanceEmptyState');
+        const confirmClearModal = document.getElementById('confirmClearModal');
+        const cancelClearBtn = document.getElementById('cancelClearBtn');
+        const confirmClearBtn = document.getElementById('confirmClearBtn');
+
+        // 通知
+        const notification = document.getElementById('notification');
+        const notificationIcon = document.getElementById('notificationIcon');
+        const notificationTitle = document.getElementById('notificationTitle');
+        const notificationMessage = document.getElementById('notificationMessage');
+
+        // 初始化
+        function init() {
+            // 设置默认日期为今天
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('maintenanceDate').value = today;
+
+            // 加载数据
+            renderPersonnelTable();
+            renderMaintenanceTable();
+
+            // 添加事件监听器
+            addEventListeners();
+        }
+
+        // 添加事件监听器
+        function addEventListeners() {
+            // 登录
+            loginForm.addEventListener('submit', handleLogin);
+            logoutBtn.addEventListener('click', handleLogout);
+
+            // 页面切换
+            personnelTab.addEventListener('click', () => switchTab('personnel'));
+            maintenanceTab.addEventListener('click', () => switchTab('maintenance'));
+
+            // 人员登记
+            addPersonBtn.addEventListener('click', () => addPersonModal.classList.remove('hidden'));
+            closePersonModal.addEventListener('click', () => addPersonModal.classList.add('hidden'));
+            cancelPersonBtn.addEventListener('click', () => addPersonModal.classList.add('hidden'));
+            personForm.addEventListener('submit', handleAddPerson);
+
+            // 保修登记
+            addMaintenanceBtn.addEventListener('click', () => addMaintenanceModal.classList.remove('hidden'));
+            closeMaintenanceModal.addEventListener('click', () => addMaintenanceModal.classList.add('hidden'));
+            cancelMaintenanceBtn.addEventListener('click', () => addMaintenanceModal.classList.add('hidden'));
+            maintenanceForm.addEventListener('submit', handleAddMaintenance);
+            clearDatabaseBtn.addEventListener('click', () => confirmClearModal.classList.remove('hidden'));
+            cancelClearBtn.addEventListener('click', () => confirmClearModal.classList.add('hidden'));
+            confirmClearBtn.addEventListener('click', handleClearDatabase);
+        }
+
+        // 处理登录
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            // 验证登录（账号密码皆为student）
+            if (username === 'student' && password === 'student') {
+                currentUser.textContent = username;
+                loginPage.classList.add('hidden');
+                appPage.classList.remove('hidden');
+                showNotification('success', '登录成功', '欢迎使用性能测试平台');
+            } else {
+                showNotification('error', '登录失败', '用户名或密码错误，请重试');
+            }
+        }
+
+        // 处理退出
+        function handleLogout() {
+            appPage.classList.add('hidden');
+            loginPage.classList.remove('hidden');
+            usernameInput.value = '';
+            passwordInput.value = '';
+            showNotification('info', '已退出登录', '感谢您的使用');
+        }
+
+        // 切换标签页
+        function switchTab(tab) {
+            if (tab === 'personnel') {
+                personnelTab.classList.add('border-primary', 'text-primary');
+                personnelTab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                maintenanceTab.classList.remove('border-primary', 'text-primary');
+                maintenanceTab.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                personnelPage.classList.remove('hidden');
+                maintenancePage.classList.add('hidden');
+            } else {
+                maintenanceTab.classList.add('border-primary', 'text-primary');
+                maintenanceTab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                personnelTab.classList.remove('border-primary', 'text-primary');
+                personnelTab.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                maintenancePage.classList.remove('hidden');
+                personnelPage.classList.add('hidden');
+            }
+        }
+
+        // 处理添加人员
+        function handleAddPerson(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('personName').value.trim();
+            const department = document.getElementById('personDepartment').value.trim();
+            const position = document.getElementById('personPosition').value.trim();
+            const contact = document.getElementById('personContact').value.trim();
+            const registrationTime = new Date().toLocaleString();
+
+            if (name && department && position && contact) {
+                const newPerson = {
+                    id: Date.now(),
+                    name,
+                    department,
+                    position,
+                    contact,
+                    registrationTime
+                };
+
+                personnelData.push(newPerson);
+                savePersonnelData();
+                renderPersonnelTable();
+
+                // 重置表单并关闭模态框
+                personForm.reset();
+                addPersonModal.classList.add('hidden');
+
+                showNotification('success', '添加成功', '人员信息已成功添加');
+            }
+        }
+
+        // 处理添加保修记录
+        function handleAddMaintenance(e) {
+            e.preventDefault();
+
+            const item = document.getElementById('maintenanceItem').value;
+            const date = document.getElementById('maintenanceDate').value;
+            const reason = document.getElementById('maintenanceReason').value.trim();
+            const applicant = document.getElementById('maintenanceApplicant').value.trim() || 'student';
+
+            if (item && date && reason) {
+                const newMaintenance = {
+                    id: Date.now(),
+                    item,
+                    date,
+                    reason,
+                    applicant,
+                    status: '待处理',
+                    createTime: new Date().toLocaleString()
+                };
+
+                maintenanceData.push(newMaintenance);
+                saveMaintenanceData();
+                renderMaintenanceTable();
+
+                // 重置表单并关闭模态框
+                maintenanceForm.reset();
+                document.getElementById('maintenanceDate').value = new Date().toISOString().split('T')[0];
+                addMaintenanceModal.classList.add('hidden');
+
+                showNotification('success', '提交成功', '保修申请已成功提交');
+            }
+        }
+
+        // 处理清空数据库
+        function handleClearDatabase() {
+            personnelData = [];
+            maintenanceData = [];
+            savePersonnelData();
+            saveMaintenanceData();
+            renderPersonnelTable();
+            renderMaintenanceTable();
+            confirmClearModal.classList.add('hidden');
+            showNotification('warning', '数据已清空', '所有记录已被永久删除');
+        }
+
+        // 渲染人员表格
+        function renderPersonnelTable() {
+            personnelTableBody.innerHTML = '';
+
+            if (personnelData.length === 0) {
+                personnelEmptyState.classList.remove('hidden');
+                return;
+            }
+
+            personnelEmptyState.classList.add('hidden');
+
+            personnelData.forEach(person => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors duration-150';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">${person.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${person.department}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${person.position}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${person.contact}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${person.registrationTime}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="deletePerson(${person.id})" 
+                                class="text-red-600 hover:text-red-900 transition-colors duration-200">
+                            <span class="fa fa-trash mr-1"></span>删除
+                        </button>
+                    </td>
+                `;
+                personnelTableBody.appendChild(row);
+            });
+        }
+
+        // 渲染保修表格
+        function renderMaintenanceTable() {
+            maintenanceTableBody.innerHTML = '';
+
+            if (maintenanceData.length === 0) {
+                maintenanceEmptyState.classList.remove('hidden');
+                return;
+            }
+
+            maintenanceEmptyState.classList.add('hidden');
+
+            maintenanceData.forEach(maintenance => {
+                const statusClass = maintenance.status === '已处理' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors duration-150';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">项目${maintenance.item}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${maintenance.date}</td>
+                    <td class="px-6 py-4">${maintenance.reason}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${maintenance.applicant}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                            ${maintenance.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="toggleMaintenanceStatus(${maintenance.id})" 
+                                class="text-primary hover:text-blue-900 mr-3 transition-colors duration-200">
+                            <span class="fa fa-check-circle mr-1"></span>${maintenance.status === '已处理' ? '标记为待处理' : '标记为已处理'}
+                        </button>
+                        <button onclick="deleteMaintenance(${maintenance.id})" 
+                                class="text-red-600 hover:text-red-900 transition-colors duration-200">
+                            <span class="fa fa-trash mr-1"></span>删除
+                        </button>
+                    </td>
+                `;
+                maintenanceTableBody.appendChild(row);
+            });
+        }
+
+        // 删除人员
+        function deletePerson(id) {
+            if (confirm('确定要删除这条人员记录吗？')) {
+                personnelData = personnelData.filter(person => person.id !== id);
+                savePersonnelData();
+                renderPersonnelTable();
+                showNotification('info', '已删除', '人员记录已成功删除');
+            }
+        }
+
+        // 删除保修记录
+        function deleteMaintenance(id) {
+            if (confirm('确定要删除这条保修记录吗？')) {
+                maintenanceData = maintenanceData.filter(maintenance => maintenance.id !== id);
+                saveMaintenanceData();
+                renderMaintenanceTable();
+                showNotification('info', '已删除', '保修记录已成功删除');
+            }
+        }
+
+        // 切换保修状态
+        function toggleMaintenanceStatus(id) {
+            const maintenance = maintenanceData.find(item => item.id === id);
+            if (maintenance) {
+                maintenance.status = maintenance.status === '已处理' ? '待处理' : '已处理';
+                saveMaintenanceData();
+                renderMaintenanceTable();
+                showNotification('success', '状态更新', '保修状态已成功更新');
+            }
+        }
+
+        // 保存人员数据
+        function savePersonnelData() {
+            localStorage.setItem('personnelData', JSON.stringify(personnelData));
+        }
+
+        // 保存保修数据
+        function saveMaintenanceData() {
+            localStorage.setItem('maintenanceData', JSON.stringify(maintenanceData));
+        }
+
+        // 显示通知
+        function showNotification(type, title, message) {
+            // 设置通知类型
+            let iconClass = 'fa-check';
+            let bgColor = 'bg-green-500';
+
+            if (type === 'error') {
+                iconClass = 'fa-times';
+                bgColor = 'bg-red-500';
+            } else if (type === 'warning') {
+                iconClass = 'fa-exclamation-triangle';
+                bgColor = 'bg-yellow-500';
+            } else if (type === 'info') {
+                iconClass = 'fa-info-circle';
+                bgColor = 'bg-blue-500';
+            }
+
+            // 更新通知内容
+            notificationIcon.className = `w-8 h-8 rounded-full flex items-center justify-center mr-3 ${bgColor}`;
+            notificationIcon.innerHTML = `<span class="fa ${iconClass} text-white"></span>`;
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+
+            // 显示通知
+            notification.classList.remove('translate-x-full', 'opacity-0');
+            notification.classList.add('translate-x-0', 'opacity-100');
+
+            // 3秒后隐藏通知
+            setTimeout(() => {
+                notification.classList.remove('translate-x-0', 'opacity-100');
+                notification.classList.add('translate-x-full', 'opacity-0');
+            }, 3000);
+        }
+
+        // 全局函数
+        window.deletePerson = deletePerson;
+        window.deleteMaintenance = deleteMaintenance;
+        window.toggleMaintenanceStatus = toggleMaintenanceStatus;
+
+        // 初始化应用
+        init();
+    </script>
+</body>
+</html>
